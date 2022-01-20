@@ -1,0 +1,38 @@
+version: '3.8'
+services:
+  chronicle-receiver:
+    build: ./receiver
+    depends_on:
+      - chronicle-consumer
+    networks:
+      - history_api
+  chronicle-consumer:
+    depends_on:
+      - redis
+    build: ./consumer
+    volumes:
+      - ./consumer/scripts:/chronicle/scripts
+    networks:
+      - history_api
+  api:
+    depends_on:
+      - redis
+    build: ./docker/node
+    working_dir: "/home/node/app"
+    environment:
+      - NODE_ENV=production
+    volumes:
+      - ./api:/home/node/app
+    command: "npm start"
+    networks:
+      - history_api
+  redis:
+    image: redis:alpine3.15
+    #command: "redis-server --requirepass redispass"
+    networks:
+      - history_api
+networks:
+#  docker_hyperion:
+#    external: true
+  history_api:
+    driver: bridge
